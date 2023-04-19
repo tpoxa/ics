@@ -9,13 +9,17 @@ import (
 	"time"
 )
 
+func nToCRLF(in string) string {
+	return string(bytes.Replace([]byte(in), []byte{10}, []byte{13, 10}, -1))
+}
+
 func Generate(prodId string, events ...*Event) (string, error) {
 	obj := &generator{
 		ProdId: prodId,
 		Events: []string{},
 	}
 
-	eventTmpl, err := template.New("events").Parse(vevent)
+	eventTmpl, err := template.New("events").Parse(nToCRLF(vevent))
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +37,7 @@ func Generate(prodId string, events ...*Event) (string, error) {
 			DtEnd:       FormatDateTime(event.DtEnd),
 			DtStart:     FormatDateTime(event.DtStart),
 			ExDate:      make([]string, len(event.ExDate)),
-			Description: strings.Join(strings.Split(event.Description, "\n"), `\n`),
+			Description: nToCRLF(strings.Join(strings.Split(event.Description, "\n"), `\n`)),
 		}
 		for i, exd := range event.ExDate {
 			e.ExDate[i] = FormatDateTime(exd)
@@ -50,7 +54,7 @@ func Generate(prodId string, events ...*Event) (string, error) {
 	}
 
 	buf := &bytes.Buffer{}
-	icsTmpl, err := template.New("ics").Parse(ics)
+	icsTmpl, err := template.New("ics").Parse(nToCRLF(ics))
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +83,7 @@ func (event *Event) Generate(prodId string) (string, error) {
 		DtEnd:       FormatDateTime(event.DtEnd),
 		DtStart:     FormatDateTime(event.DtStart),
 		ExDate:      make([]string, len(event.ExDate)),
-		Description: strings.Join(strings.Split(event.Description, "\n"), `\n`),
+		Description: nToCRLF(strings.Join(strings.Split(event.Description, "\n"), `\n`)),
 	}
 	for i, exd := range event.ExDate {
 		e.ExDate[i] = FormatDateTime(exd)
@@ -87,7 +91,7 @@ func (event *Event) Generate(prodId string) (string, error) {
 	event.dtStamp = e.DtStamp
 	event.UID = hex.EncodeToString([]byte(e.UID))
 
-	eventTmpl, err := template.New("events").Parse(vevent)
+	eventTmpl, err := template.New("events").Parse(nToCRLF(vevent))
 	if err != nil {
 		return "", err
 	}
@@ -99,7 +103,7 @@ func (event *Event) Generate(prodId string) (string, error) {
 	obj.Events = append(obj.Events, buf.String())
 
 	buf = &bytes.Buffer{}
-	icsTmpl, err := template.New("ics").Parse(ics)
+	icsTmpl, err := template.New("ics").Parse(nToCRLF(ics))
 	if err != nil {
 		return "", err
 	}
